@@ -1,0 +1,98 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: stp-postgres
+    environment:
+      POSTGRES_DB: smart_tourism
+      POSTGRES_USER: smart_tourism
+      POSTGRES_PASSWORD: smart_tourism_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - stp_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smart_tourism -d smart_tourism"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: stp-server
+    env_file:
+      - ./server/.env.example
+    environment:
+      NODE_ENV: production
+      PORT: 8085
+      DATABASE_URL: postgres://smart_tourism:smart_tourism_password@postgres:5432/smart_tourism
+      CORS_ORIGIN: http://localhost
+      UPLOAD_DIR: uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "8085"
+    volumes:
+      - stp_uploads:/app/uploads
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: stp-client
+    environment:
+      - VITE_API_BASE_URL=
+    depends_on:
+      - server
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: stp-nginx
+    depends_on:
+      - client
+      - server
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: stp-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+    depends_on:
+      - server
+      - node-exporter
+
+  grafana:
+    image: grafana/grafana:11.2.1
+    container_name: stp-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: stp-node-exporter
+    ports:
+      - "9100:9100"
+
+volumes:
+  stp_postgres_data:
+  stp_uploads:
+

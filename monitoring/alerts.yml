@@ -1,0 +1,30 @@
+groups:
+  - name: smart-tourism-alerts
+    rules:
+      - alert: ApiDown
+        expr: up{job="smart-tourism-server"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Smart Tourism API is down"
+          description: "Prometheus cannot reach server:8085 for over 1 minute."
+
+      - alert: HighCpuNode
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on node"
+          description: "CPU usage is above 85% for 5 minutes."
+
+      - alert: HighMemoryNode
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on node"
+          description: "Memory usage is above 90% for 5 minutes."
+
