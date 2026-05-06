@@ -1,2 +1,2 @@
 git add DEPLOY_UBUNTU.md
-git commit -m "Add Ubuntu deploy guide"
+git commit -m "Fix bug in login"
