@@ -1,12 +1,2 @@
-1. Install Docker + Compose plugin on Ubuntu.
-2. Clone repository:
-   - `git clone <repo-url> smart-tourism-platform`
-3. Enter project:
-   - `cd smart-tourism-platform`
-4. Start stack:
-   - `docker compose up -d --build`
-5. Open:
-   - Website: `http://<server-ip>`
-   - API health: `http://<server-ip>/healthz`
-   - Grafana: `http://<server-ip>:3000` (admin/admin)
-   - Prometheus: `http://<server-ip>:9090`
+git add DEPLOY_UBUNTU.md
+git commit -m "Add Ubuntu deploy guide"
