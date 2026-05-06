@@ -1,0 +1,20 @@
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Start nginx
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Create simple index.html
+  copy:
+    dest: /var/www/html/index.html
+    content: |
+      <html>
+        <h1>Hello from Ansible!</h1>
+      </html>
+  notify: restart nginx
